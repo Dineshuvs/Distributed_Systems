@@ -1,0 +1,48 @@
+Q1. In a conventional network, the switch has a lookup table in the controller which gets filled with MAC to IP address entries
+assigned by a DHCP server (can be static or dynamic) depending on use case, static IPs from the NIC or by using link local ARP in 
+case static IP is absent along with missing DHCP server. This table is periodically refreshed at set intervals or when a new device 
+is added or removed to the network. The incoming packet will have an IP address in it's header and using the lookup table, MAC address
+of the corresponding IP address is known to the switch to which the packet is finally forwarded.
+
+Q2. The switch will not have the MAC to IP address lookup table yet for the destination to be pinged so it will contact the 
+controller to plot the route to the destination. An ARP is performed to get the MAC address of the hostname we are trying to ping 
+(ie the IP address of the destination) and since it is cached, subsequent pings are always having stable low RTT times.
+
+
+Q3. 
+
+
+Q4. 
+OFPT_HELLO - Is a packet containing OpenFlow header containing highest version number of openflow supported by the switch and 
+controller respectively
+OFPT_PORT_STATUS - Is used to notify a change in ports, changes in read only flags,etc to the controller
+OFPT_FEATURES_REQUEST - Used by controller to request identity of the switch and read it's basic features
+OFPT_FEATURES_REPLY - Used by switch to respond it's identity and it's basic features
+OFPT_MULTIPART_REQUEST - Used in conjunction with OFPT_MULTIPART_REPLY to transmit large chunks of data which is greater than 64KB
+OFPT_PACKET_IN - Used to send a captured packet by the switch to the controller
+OFPT_PACKET_OUT - Used to inject a packet into the dataplane of the switch
+OFPT_FLOW_MOD - Used by the controller to modify the state of an Openflow Switch
+
+Q5.
+One flow is between host h1 and host h2 where h1 is the source and h2 is the sink(destination).
+The second flow is used between host h2 to h1 where h2 is the source and h1 is the destination.
+The third flow is between the switch and the controller.
+
+The cookie is an identifier for the flow entry. Duration is the time the flow has been active. idle_timeout is the amount of time 
+after which the flow is dropped. dl_src and dl_dst are the source and destination MAC IDs respectively. nw_src and nw_dst are the 
+source and destination IP addresses respectively. actions contains the type of flow and port number. output for dataplane and controller
+for control plane.
+
+Q6. The sequence of packets is as follows,
+
+OFPT_PACKET_IN -> Server receives SYN flag for initiating TCP handshake
+OFPT_FLOW_MOD -> Controller asks switch to change state to output aka OFPT_PACKET_OUT mode
+OFPT_PACKET_OUT -> Actual data transfer between h2 and h1 occur here on the data plane. Both SYN and ACK received by client
+OFPT_PACKET_IN -> Server receives ACK flag from client for completing TCP handshake
+
+
+Q7. 7 switches are present in a tree topology. H1 is on switch S3 which is in turn connected to switches S2,S1,S5 and finally to S7 which contains host H8.
+So in total 5 switched need to be programmed to ping h8 from h1.
+
+Q8. The initial RTT depends purely on how fast the entire topology is discovered by the controller, for example h1 ping h7 gave us 21.2ms but h2 ping h7 gave us an initial RTT of unreachable followed by 19.3ms with a lot of packet loss.
+The slower the network discovery, longer the initial RTT so more the number of switches, longer the discovery of the entire network topology. But once the topology is discovered, I would say the initial RTT is the same irrespective of number of switches.
